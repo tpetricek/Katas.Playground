@@ -1,0 +1,9 @@
+*.suo
+*.bak
+packages/
+obj/
+bin/
+.paket/paket.exe
+*.svclog
+.fake
+paket-files

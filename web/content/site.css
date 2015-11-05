@@ -1,0 +1,47 @@
+﻿@import url(http://fonts.googleapis.com/css?family=Rufina:300,400,700|Pontano+Sans:400,700,400italic);
+
+.spinner {
+  display:none;
+  margin-left:auto;
+  margin-right:auto;
+  width:21px;
+  height:21px;
+  background-image:url('spinner.png');
+}
+
+.cm-s-default {
+  border-style:none;
+  font-size: 11pt !important;
+  height:auto;
+}
+
+.editor-cm {
+  width:auto;
+  height:auto;
+  max-height:0px;
+  opacity:0.0;
+  margin:5px 20px 0px 20px;
+  transition:max-height 1s;
+  transition:margin-bottom 1s;
+  transition:opacity 1.25s;
+}
+
+.editor-cm-visible {
+  opacity:1.0;
+  max-height:1000px;
+  margin-bottom:10px;
+}
+
+h1 {
+  font:bold 30pt Rufina,'Times New Roman', Times, serif;
+  color:black;
+}
+
+h2 {
+  font:bold 22pt Rufina,'Times New Roman', Times, serif;
+  color:black;
+}
+
+p {
+  font:normal 13pt 'Pontano Sans', sans-serif;
+}
