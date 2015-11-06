@@ -3,6 +3,7 @@
 packages/
 obj/
 bin/
+!client/bin/
 .paket/paket.exe
 *.svclog
 .fake
