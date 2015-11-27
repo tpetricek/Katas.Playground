@@ -191,11 +191,10 @@ let webPart (checker:ResourceAgent<FSharpChecker>) ctx = async {
         getDeclarations (Config.scriptFile, loadScriptString + source)
                         (line + loadScript.Length, col)
         |> checker.Process
-      decls |> Seq.iter (fun (n,g,_) -> printfn "  - %s (%d)" n g)
+      decls |> Seq.iter (fun (n,g,(d1, d2)) -> printfn "  - %s (%d)\n   %s\n  %s" n g d1 d2)
       let res = 
         [| for name, glyph, (sg, info) in decls do
-             if not (info.Contains("[OMIT]")) then 
-                yield JsonTypes.Declaration(name, glyph, sg, info) |]
+             yield JsonTypes.Declaration(name, glyph, sg, info) |]
       return! ctx |> noCacheSuccess (JsonTypes.Declarations(res).JsonValue.ToString())
 
   | _ -> return None }

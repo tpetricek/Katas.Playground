@@ -50,29 +50,11 @@
     return max;
   }
 
-  function repeat(s, n){
-      var a = [];
-      while(a.length < n){
-          a.push(s);
-      }
-      return a.join('');
-  }
-
-  function escapeIdent(name) {
-    if (!isNaN(name[0]) || lastIndexOfAny(name, [' ', '[', ']', '.']) != -1) {
-      name = '``' + name + '``';
-    }
-    return name;
-  }
-
-
   this.lastIndexOfAny = lastIndexOfAny;
   this.removeCssClass = removeCssClass;
   this.addCssClass = addCssClass;
   this.hasCssClass = hasCssClass;
   this.showElement = showElement;
-  this.escapeIdent = escapeIdent;
-  this.repeat = repeat;
 };
 
 
@@ -196,50 +178,6 @@ var MethodsIntellisense = function () {
   this.setPosition = setPosition;
 };
 
-var DocumentationSide = function()
-{
-  var utils = new Utils();
-  var documentationElement = document.getElementById('editor-documentation-side');
-
-  function showElement(b) {
-    if (documentationElement != null)
-      utils.showElement(documentationElement, b);
-    else
-      parent.postMessage({'action':'showtip', 'visible':b}, "*");  
-  };
-
-  function showDocumentation(documentation) {
-    if (documentation == null || documentation.trim().length == 0) {
-      showElement(false);
-    }
-    else {
-      showElement(true);
-      if (documentationElement != null)
-      {
-        if (documentation.trim().indexOf("[JAVASCRIPT]") == 0) {
-          eval("(" + documentation.trim().substr("[JAVASCRIPT]".length) + ")")(documentationElement);
-        } else {
-          documentationElement.innerHTML = documentation;
-        }
-      } else {
-        parent.postMessage({'action':'tip', 'html':documentation.trim()}, "*");
-      }
-    }
-  }
-
-  function moveElement(top) {
-    if (documentationElement != null)
-    {
-      var headerHeight = document.getElementById("header").offsetHeight;
-      documentationElement.style.top = (top - headerHeight - 20) + "px";
-    }
-  }
-
-  this.moveElement = moveElement;
-  this.showDocumentation = showDocumentation;
-  this.showElement = showElement;
-}
-
 var DeclarationsIntellisense = function () {
   var events = { itemChosen: [], itemSelected: [] };
   var utils = new Utils();
@@ -247,14 +185,18 @@ var DeclarationsIntellisense = function () {
   var filteredDeclarations = [];
   var filteredDeclarationsUI = [];
   var visible = false;
-  var declarations = [];
-  var documentationSide = new DocumentationSide();
+  var declarations = []
 
   // ui widgets
   var selectedElement = null;
   var listElement = document.createElement('ul');
   listElement.className = 'br-intellisense';
+
+  var documentationElement = document.createElement('div');
+  documentationElement.className = 'br-documentation';
+
   document.body.appendChild(listElement);
+  document.body.appendChild(documentationElement);
 
   /**
    * Filters an array
@@ -348,7 +290,14 @@ var DeclarationsIntellisense = function () {
       utils.addCssClass(selectedElement, 'br-selected');
 
       var item = getSelectedItem();
-      documentationSide.showDocumentation(item.documentation);
+      if (item.documentation == null) {
+        showDocumentation(false);
+      }
+      else {
+        showDocumentation(true);
+        var hasDoc = item.documentation != null && item.documentation.trim() != "";
+        documentationElement.innerHTML = item.signature + (hasDoc ? ("<br /><br />" + item.documentation) : "");
+      }
 
       var top = selectedElement.offsetTop;
       var bottom = top + selectedElement.offsetHeight;
@@ -375,7 +324,7 @@ var DeclarationsIntellisense = function () {
         setSelectedIndex(idx);
         triggerItemChosen(getSelectedItem());
         setVisible(false);
-        documentationSide.showElement(false);
+        showDocumentation(false);
       };
 
       listItem.onclick = function () {
@@ -390,12 +339,19 @@ var DeclarationsIntellisense = function () {
   }
 
   /**
+   * Shows / hides the documentation element
+   */
+  function showDocumentation(b) {
+    utils.showElement(documentationElement, b);
+  };
+
+  /**
    * Show the auto complete and the documentation elements
    */
   function setVisible(b) {
     visible = b;
     utils.showElement(listElement, b);
-    documentationSide.showElement(b);
+    utils.showElement(documentationElement, b);
   }
 
   /**
@@ -409,7 +365,7 @@ var DeclarationsIntellisense = function () {
 
       // show the elements
       setVisible(true);
-      documentationSide.showElement(true);
+      showDocumentation(true);
       setFilter('');
     }
   }
@@ -422,8 +378,9 @@ var DeclarationsIntellisense = function () {
     listElement.style.left = left + 'px';
     listElement.style.top = top + 'px';
 
-    // reposition documentation
-    documentationSide.moveElement(top);
+    // reposition documentation (magic number offsets can't figure out why)
+    documentationElement.style.left = (left + listElement.offsetWidth + 5) + 'px';
+    documentationElement.style.top = (top + 5) + 'px';
   }
 
   /**
@@ -476,4 +433,5 @@ var DeclarationsIntellisense = function () {
   this.setDeclarations = setDeclarations;
   this.setPosition = setPosition;
   this.setVisible = setVisible;
+  this.showDocumentation = showDocumentation;
 };
