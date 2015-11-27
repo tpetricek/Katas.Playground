@@ -1,4 +1,5 @@
 FSharp.Formatting
 FSharp.Compiler.Service
 Suave
+Suave.DotLiquid
 FSharp.Data

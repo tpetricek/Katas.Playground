@@ -1,0 +1,50 @@
+{% extends "page.html" %}
+{% block content %}
+
+<div id="banner-wrapper">
+  <div class="container"><div class="row">
+    <div class="col-md-12">    
+      {{ model.Introduction }}        
+    </div>
+  </div></div>
+</div>
+
+<div class="tabs-wrapper">
+  <div class="container"><div class="row">
+    <div class="col-md-12">        
+      {% for item in model.Sections %}        
+        <a {% if forloop.first %}class="selected" {% endif %}
+          id="link_hd_{{item.ID}}"
+          href="javascript:showTab('{{item.ID}}');">{{ item.Title }}</a>
+      {% endfor %}
+    </div>
+  </div></div>
+</div>
+
+<div id="main">
+<div class="container">
+
+  {% for item in model.Sections %}
+  <div class='row tab {% if forloop.first %}selected{% endif %}' id="{{item.ID}}">
+  <div class="col-md-12 content">
+      {{ item.Body }}
+  </div>
+  </div>
+  {% endfor %}
+  
+</div>
+</div>
+
+<div class="tabs-wrapper tabs-wrapper-bottom">
+  <div class="container"><div class="row">
+    <div class="col-md-12">        
+      {% for item in model.Sections %}        
+        <a {% if forloop.first %}class="selected" {% endif %}
+          id="link_ft_{{item.ID}}"
+          href="javascript:showTab('{{item.ID}}');">{{ item.Title }}</a>
+      {% endfor %}
+    </div>
+  </div></div>
+</div>
+
+{% endblock %}

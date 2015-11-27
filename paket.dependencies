@@ -1,9 +1,12 @@
 source https://nuget.org/api/v2
 
-nuget FSharp.Formatting
+nuget FSharp.Formatting >= 2.12.0
 nuget FSharp.Data
-nuget FSharp.Compiler.Service 1.3.1.2
+nuget FSharp.Compiler.Service
 nuget Suave
-nuget FAKE 4.5.4
+nuget Suave.DotLiquid
+nuget FAKE
+nuget FSharp.Compiler.Tools
 
 github matthid/Yaaf.FSharp.Scripting src/source/Yaaf.FSharp.Scripting/YaafFSharpScripting.fs
+  

@@ -52,6 +52,11 @@ let reloadAppServer () =
     currentApp.Value <- app
     traceImportant "New version of app.fsx loaded!" )
 
+
+// --------------------------------------------------------------------------------------
+// Running the site locally with automatic refresh
+// --------------------------------------------------------------------------------------
+
 Target "Run" (fun _ ->
   let app ctx = currentApp.Value ctx
   let _, server = startWebServerAsync serverConfig app
@@ -59,23 +64,36 @@ Target "Run" (fun _ ->
   // Start Suave & open web browser with the site
   reloadAppServer()
   Async.Start(server)
-  //System.Diagnostics.Process.Start("http://localhost:8087") |> ignore
+  System.Diagnostics.Process.Start("http://localhost:8087") |> ignore
 
   // Watch for changes & reload when app.fsx changes
   let sources = { BaseDirectory = __SOURCE_DIRECTORY__; Includes = [ "**/*.fs*" ]; Excludes = [] }
   use watcher = sources |> WatchChanges (fun _ -> reloadAppServer())
   traceImportant "Waiting for app.fsx edits. Press any key to stop."
-
-  async {
-    while not(System.IO.File.Exists(__SOURCE_DIRECTORY__ @@ ".stop")) do
-      do! Async.Sleep(500)
-    System.Diagnostics.Process.GetCurrentProcess().Kill() }
-  |> Async.Start
-
   System.Console.ReadLine() |> ignore
 )
 
-Target "Build" ignore
+// --------------------------------------------------------------------------------------
+// Compile 'translator.fs' so that we can run it in an AppDomain
+// --------------------------------------------------------------------------------------
+
+Target "Compile" (fun _ ->
+  System.Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+  traceImportant "Compiling 'translator.fs'..."
+  let res = System.TimeSpan.MaxValue |> ExecProcessAndReturnMessages (fun ps ->
+    let args = 
+      sprintf "--noframework -r:%s -r:%s -g --debug:full --optimize- --out:%s --target:library %s" 
+        "lib/FSharp.Core.dll" "lib/FunScript.dll" 
+        "lib/Translator.dll" "code/translator.fs"
+    ps.WorkingDirectory <- __SOURCE_DIRECTORY__
+    ps.FileName <- "packages/FSharp.Compiler.Tools/tools/fsc.exe"
+    ps.Arguments <- args)
+
+  res.Messages |> Seq.iter (printfn "%s")
+  if not res.OK then
+    res.Errors |> Seq.iter traceError
+    failwith "Compiling 'translator.fs' failed!"
+)
 
 // --------------------------------------------------------------------------------------
 // Minimal Azure deploy script - just overwrite old files with new ones
@@ -86,18 +104,9 @@ Target "Deploy" (fun _ ->
   let wwwrootDirectory = __SOURCE_DIRECTORY__ @@ "../wwwroot"
   CleanDir wwwrootDirectory
   CopyRecursive sourceDirectory wwwrootDirectory false |> ignore
-(*
-  try
-    DeleteDir wwwrootDirectory
-    CreateDir wwwrootDirectory
-  with e ->
-    printfn "Could not delete all files in %s" wwwrootDirectory
-  try
-    CopyRecursive sourceDirectory wwwrootDirectory false |> ignore
-  with e ->
-    printfn "Copying files failed with: %A" e
-    reraise()
-*)
 )
+
+"Compile" ==> "Run"
+"Compile" ==> "Deploy"
 
 RunTargetOrDefault "Run"

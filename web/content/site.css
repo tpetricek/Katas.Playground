@@ -1,18 +1,148 @@
-﻿@import url(http://fonts.googleapis.com/css?family=Rufina:300,400,700|Pontano+Sans:400,700,400italic);
+﻿@import url(https://fonts.googleapis.com/css?family=Inconsolata|Rajdhani:400,500,700,600,300|Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic);
 
-.spinner {
-  display:none;
-  margin-left:auto;
-  margin-right:auto;
-  width:21px;
-  height:21px;
-  background-image:url('spinner.png');
+/**************** Orange header ****************/
+header {
+  background:#CC4F37;
+}
+header h1 {
+  font:500 18pt 'Rajdhani', sans-serif;
+  margin:10px 0px 10px 0px;
+  text-transform:uppercase;
+}
+header h1 a, header h1 a:hover {
+  color:white;
 }
 
+/**************** Gray banner ****************/
+#banner-wrapper {
+  background-color:#332E2E;
+  color:#d0d0d0;
+  font-family:'Rajdhani', sans-serif;
+  font-weight:400;
+  padding:50px 0px 50px 0px;
+}
+#banner-wrapper h1 {
+  font-weight:600;
+  font-size:30pt;
+  margin:0px;
+}
+#banner-wrapper p {
+  font-size:15pt;
+  line-height:1.2em;  
+  margin:20px 0px 0px 0px;
+}
+#banner-wrapper a {
+  font-weight:600;
+  color:white;
+}
+
+/**************** Footer ****************/
+footer {
+  background-color:#332E2E;
+  color:#b0b0b0;
+  font-family:'Rajdhani', sans-serif;
+  font-weight:400;
+  padding:50px 0px 50px 0px;
+}
+footer p, footer li {
+  font-size:10pt;
+}
+footer h3 {
+  margin-top:0px;
+  font-size:14pt;
+}
+footer a, footer a:hover {
+  color:white;
+}
+
+/**************** Tabs right under gray banner ****************/
+.tabs-wrapper {
+  background-color:#332E2E;
+  color:white;
+}
+.tabs-wrapper a  {
+  border-radius:5px 5px 0px 0px;
+  display:inline-block;
+  font-family:'Rajdhani', sans-serif;
+  font-weight:700;
+  font-size:18pt;
+  padding:2px 30px 2px 30px;
+  margin:0px 10px 0px 0px;
+  min-width:160px;
+  text-align:center;
+  background:#c0c0c0;
+  color:#222222;
+}
+.tabs-wrapper-bottom a {
+  border-radius:0px 0px 5px 5px;
+}
+.tabs-wrapper a.selected {  
+  background:#f0f0f0;
+  color:#222222;
+}
+#main .tab {
+  display:none;
+}
+#main .selected {
+  display:block;
+}
+
+/**************** Home page content ****************/
+
+body {
+  background:#332E2E;  
+  font:500 12pt 'Open Sans', sans-serif;
+}
+
+#home {
+  background:#c0c0c0;
+}
+#home .row {
+  background:#f0f0f0;    
+}
+#home .row:last-child {
+  min-height:300px;
+}
+#home .col-md-6 {
+  padding:30px 30px 0px 30px;
+}
+#home h2
+{
+  font:26pt 'Rajdhani', sans-serif;
+  font-weight:600;
+}
+#home h2 a 
+{
+  color:#332E2E;
+}
+
+/**************** Kata page content ****************/
+
+#main {
+  background:#c0c0c0;
+}
+#main .content {
+  background:#f0f0f0;  
+  padding:30px;
+  min-height:500px;
+}
+#main h2 {
+  font:500 30pt 'Rajdhani', sans-serif;
+}
+#main p {
+}
+
+/**************** F# code editor ****************/
+
 .cm-s-default {
-  border-style:none;
-  font-size: 11pt !important;
+  font: 11pt 'Inconsolata',consolas !important;
+  border:1px solid #d8d8d8;
+  border-collapse:separate;  
+  border-radius:5px;
   height:auto;
+  padding:5px;
+  background:#ffffff;
+  margin:10px 20px 0px 20px;
 }
 
 .editor-cm {
@@ -20,10 +150,7 @@
   height:auto;
   max-height:0px;
   opacity:0.0;
-  margin:5px 20px 0px 20px;
-  transition:max-height 1s;
-  transition:margin-bottom 1s;
-  transition:opacity 1.25s;
+  margin:0px;
 }
 
 .editor-cm-visible {
@@ -32,16 +159,185 @@
   margin-bottom:10px;
 }
 
-h1 {
-  font:bold 30pt Rufina,'Times New Roman', Times, serif;
-  color:black;
+/**************** Run tests button and alert box ****************/
+.alert {
+  display:none;
+  padding:9px 15px 8px 15px;
+  color:#d0d0d0;
+}
+.alert strong {
+  margin-right:10px;
+}
+.alert-info {
+  display:block;
+  background:#564E4E;
+  border-color:#564E4E;
+}
+.alert-danger {
+  background:#632117;
+  border-color:#632117;
+}
+.alert-success {
+  background:#1E6023;
+  border-color:#1E6023;
+}
+.alert-wrapper {
+  margin-right:20px;
+  margin-left:170px;  
+  height:40px;
+}
+.btn-success {
+  background:#CC4F37;
+  border-color:#CC4F37;
+  font-size:14pt;
+  width:140px;
+  height:40px;
+  padding-right:10px;
+  position:relative;
+  top:-40px;
+  left:20px;
+}
+.btn-success:hover, .btn-success:active, .btn-success:focus {
+  background:#8E3626 !important;
+  border-color:#8E3626 !important;
+}
+.spinner {
+  display:none;
+  position:relative;
+  top:-25px;
+  left:92px;
+  width:21px;
+  height:21px;
+  background-image:url('spinner.png');
 }
 
-h2 {
-  font:bold 22pt Rufina,'Times New Roman', Times, serif;
-  color:black;
+
+/**************** Test result buttons ****************/
+
+.test-result {
+  color:white;
+  border-radius:10px;
+  width:20px;
+  height:20px;
+  display:inline-block;
+  font-size:12pt;
+  float:right;
+}
+.test-success {
+  background:#3C9637;
+}
+.test-success i:before  {
+  content:"\f00c";
+  position:relative;
+  left:2px;
+  top:3px;
+}
+.test-fail {
+  background:#DB3B43;
+}
+.test-fail i:before {
+  content:"\f00d";
+  position:relative;
+  left:4px;
+  top:2px;
+}
+.test-unknown {
+  background:#909090;
+}
+.test-unknown i:before {
+  content:"\f128";
+  position:relative;
+  left:5px;
+  top:2px;
 }
 
-p {
-  font:normal 13pt 'Pontano Sans', sans-serif;
+/**************** Formatted F# code snippets ****************/
+
+/* identifier */
+span.i { color:#000000; }
+/* string */
+span.s { color:#a31515; }
+/* keywords */
+span.k { color:#0000ff; }
+/* comment */
+span.c { color:#008000; }
+/* operators */
+span.o { color:#000000; }
+/* numbers */
+span.n { color:#000000; }
+/* line number */
+span.l { color:#96c2cd; }
+/* type or module */
+span.t { color:#2b91af; }
+/* function */
+span.f { color:#0000a0; }
+/* DU case or active pattern */
+span.p { color:#800080; }
+/* mutable var or ref cell */
+span.v { color:#000000; font-weight: bold; }
+/* printf formatters */
+span.pf { color:#2b91af; }
+/* escaped chars */
+span.e { color:#ff0080; }
+
+/* inactive code */
+span.inactive { color:#808080; }
+/* preprocessor */
+span.prep { color:#0000ff; }
+/* fsi output */
+span.fsi { color:#808080; }
+
+/* omitted */
+span.omitted { 
+	background:#3c4e52;
+  border-radius:5px;
+	color:#808080;
+	padding:0px 0px 1px 0px;
+}
+/* tool tip */
+div.tip {
+	background:#e5e5e5;
+  border-radius:4px;
+  font:9pt 'Open Sans', arial, sans-serif;
+	padding:6px 8px 6px 8px;
+	display:none;
+  color:#000000;
+}
+table.pre pre {
+  padding:0px;
+  margin:0px;
+  border:none;
+} 
+table.pre, pre.fssnip, pre {
+  line-height:13pt;
+  border:1px solid #d8d8d8;
+  border-collapse:separate;
+  white-space:pre;
+  font:11pt 'Inconsolata',consolas,monospace;
+  margin:10px 20px 20px 20px;
+  background-color:#f4f4f4;
+  padding:10px;
+  border-radius:5px;
+  color:#000000;  
+}
+pre.fssnip code {
+  font:11pt 'Inconsolata',consolas,monospace;
+}
+table.pre pre {
+  padding:0px;
+  margin:0px;
+  border-radius:0px;
+  width: 100%;
+}
+table.pre td {
+  padding:0px;
+  white-space:normal;
+  margin:0px;
+}
+table.pre td.lines {
+  width:30px;
+}
+
+#main pre, #main code {
+  font:13pt 'Inconsolata',consolas,monospace;
 }

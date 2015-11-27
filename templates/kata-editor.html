@@ -1,0 +1,24 @@
+<div id="[ID]_editor" class="editor-cm"></div>
+
+<div class="alert-wrapper">
+  <div class="alert alert-info" role="alert" id="[ID]_alert_info">
+    <p><strong>Welcome!</strong> 
+      Edit the code above and hit the "Run" button to run the tests!</p>
+  </div>
+  <div class="alert alert-danger" role="alert" id="[ID]_alert_fail">
+    <p><strong>Some tests failed.</strong> 
+      See the individual tests below and try again!</p>
+  </div>
+  <div class="alert alert-success" role="alert" id="[ID]_alert_success">
+    <p><strong>Congratulations!</strong> 
+      Your code passed all the tests. Have fun exploring more problems!</p>
+  </div>
+</div>
+<button class="btn btn-success" onclick="evalKata('[SECTION]', '[ID]');">
+  Run <div class="spinner" id="[ID]_spinner"></div>
+</button>
+
+<script type="text/javascript">
+  var [ID]_source = "[SOURCE]";
+  setupEditor("[ID]");    
+</script>

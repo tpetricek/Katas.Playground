@@ -1,15 +1,19 @@
-﻿#r "packages/Suave/lib/net40/Suave.dll"
-open Suave
-open Suave.Http
-
-#r "System.Web.dll"
+﻿#r "System.Web.dll"
+#r "packages/Suave/lib/net40/Suave.dll"
+#r "packages/DotLiquid/lib/NET45/DotLiquid.dll"
+#r "packages/Suave.DotLiquid/lib/net40/Suave.DotLiquid.dll"
 #r "packages/FSharp.Compiler.Service/lib/net40/FSharp.Compiler.Service.dll"
 #r "packages/FSharp.Data/lib/net40/FSharp.Data.dll"
+#r "lib/Translator.dll"
 #load "packages/FSharp.Formatting/FSharp.Formatting.fsx"
+
+open Suave
+open Suave.Http
 
 #load "code/config.fs"
 #load "code/common.fs"
 #load "code/evaluator.fs"
+#load "code/home.fs"
 #load "code/document.fs"
 #load "code/editor.fs"
 
@@ -20,6 +24,18 @@ open Suave.Http.Applicatives
 open Katas.Server
 open Katas.Server.Common
 open Microsoft.FSharp.Compiler.SourceCodeServices
+open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
+
+
+// Configure DotLiquid templates & register filters (in 'filters.fs')
+[ for t in System.Reflection.Assembly.GetExecutingAssembly().GetTypes() do
+    if t.Name = "Filters" && not (t.FullName.StartsWith "<") then yield t ]
+|> Seq.tryLast
+|> Option.iter DotLiquid.registerFiltersByType
+
+DotLiquid.setTemplatesDir (__SOURCE_DIRECTORY__ + "/templates")
+
+
 
 let staticWebFile ctx = async {
   let local = ctx.request.url.LocalPath
@@ -43,16 +59,17 @@ let staticWebFile ctx = async {
 let checker =
   ResourceAgent("FSharpChecker", Int32.MaxValue, fun () -> FSharpChecker.Create())
 
-let fsi =
-  ResourceAgent("FsiSession", 50,
-    (fun () -> Evaluator.startSession Config.gammaFolder Config.loadScriptString),
-    (fun fsi -> (fsi.Session :> IDisposable).Dispose()) )
+let compiler =
+  ResourceAgent("FSharpCompiler", 50, 
+    (fun () -> Evaluator.startSession()), 
+    (fun s -> AppDomain.Unload(s.AppDomain)) )
 
 let app =
   choose
-    [ Editor.webPart checker
-      Document.webPart fsi
-      Evaluator.webPart fsi
+    [ Home.webPart
+      Editor.webPart checker
+      Document.webPart
+      Evaluator.webPart compiler
       staticWebFile
       RequestErrors.NOT_FOUND("Not found") ]
 

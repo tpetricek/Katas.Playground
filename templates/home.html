@@ -1,0 +1,50 @@
+{% extends "page.html" %}
+{% block head %}
+<title>F# Katas Playground</title>
+{% endblock %}
+
+{% block content %}
+<div id="banner-wrapper">
+  <div class="container"><div class="row">
+    <div class="col-md-12">    
+      
+      <img src="/content/fssf.png" style="float:right;height:220px;margin:30px 50px 0px 70px" />
+      
+      <h1>Welcome to F# Playground!</h1>
+      <p>Do you want to try <a href="http://fsharp.org">the F# language</a> without 
+        setting up an editor? If so, you found the right place! This web site lets 
+        you solve a number of F# code Koans and Katas right in your browser without 
+        any installation.</p>
+      
+      <p>No matter if you're new to F#, or if you just want to practice your existing
+        skills, we're sure you'll find fun exercises below! And don't forget that
+        you can also <a href="https://github.com/tpetricek/Katas.Playground">contribute
+        new content</a> on GitHub.</p>
+    </div>
+  </div></div>
+</div>
+
+<div id="home">
+<div class="container">
+  <div class='row'>
+      
+  {% for item in model %}
+    <div class="col-md-6">
+
+      <h2><a href="{{ item.Url }}">{{ item.Heading }}</a></h2>
+      {{ item.Description }}
+
+    </div>
+    
+    {% assign mod = forloop.index | modulo: 2 %}
+    {% if mod == 0 %}
+      </div><div class='row'>
+    {% endif %}
+    
+    {% endfor %}
+      
+  </div>
+  </div>  
+</div>
+</div>
+{% endblock %}

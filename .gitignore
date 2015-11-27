@@ -8,3 +8,5 @@ bin/
 *.svclog
 .fake
 paket-files
+lib/Translator.dll
+lib/Translator.pdb

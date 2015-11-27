@@ -1,88 +1,48 @@
 ﻿module Katas.Server.Evaluator
 
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Interactive.Shell
-open Microsoft.FSharp.Compiler.SourceCodeServices
 open System
 open System.IO
 open System.Text
 open Katas.Server.Common
+open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
 
 // ------------------------------------------------------------------------------------------------
 // FunScript + F# Compiler Service Evaluator
 // ------------------------------------------------------------------------------------------------
 
-type FsiSession =
-  { Session : FsiEvaluationSession
-    ErrorString : StringBuilder }
+type CompilerSession =
+  { Compiler : SimpleSourceCodeServices 
+    AppDomain : AppDomain }
 
-/// Start F# Interactive, reference all assemblies in `refFolder`
-/// evaluate the initial `loadScript` and return running 'FsiSession'
-let startSession refFolder loadScript =
-  let sbOut = new StringBuilder()
-  let sbErr = new StringBuilder()
-  let inStream = new StringReader("")
-  let outStream = new StringWriter(sbOut)
-  let errStream = new StringWriter(sbErr)
-
-  // Start the F# Interactive service process
-  let refFiles = Directory.GetFiles(refFolder, "*.dll")
-  let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
-  let fsiSession =
-    FsiEvaluationSession.Create
-      ( fsiConfig, [| "/temp/fsi.exe"; "--noninteractive" |],
-        inStream, outStream, errStream, collectible = true )
-
-  // Load referenced libraries & run initialization script
-  try
-    fsiSession.EvalInteraction(sprintf "#I @\"%s\"" refFolder)
-    for lib in refFiles do fsiSession.EvalInteraction(sprintf "#r @\"%s\"" lib)
-    fsiSession.EvalInteraction(loadScript)
-    { Session = fsiSession; ErrorString = sbErr }
-  with _ -> failwithf "F# Interactive initialization failed: %s" (sbErr.ToString())
-
-
-/// Check that the user didn't do anything to escape quoted expression
-/// (i.e. they are not trying to run any code on our server..)
-let checkScriptStructure (scriptFile, source) (checker:FSharpChecker) = async {
-  let! options = checker.GetProjectOptionsFromScript(scriptFile, source)
-  let! parsed = checker.ParseFileInProject(scriptFile, source, options)
-  match parsed.ParseTree with
-  | Some tree ->
-      match tree with
-      // Expecting: single file containing single module named "Script"
-      | ParsedInput.ImplFile
-          (ParsedImplFileInput(_,_,_,_,_,[SynModuleOrNamespace([id],_,decls,_,_,_,_)],_))
-            when id.idText = "Script" ->
-        match decls with
-        // Expecting: FunScript.Compiler.Compiler.Compile(<@ .. @>)
-        // (if all user code is inside quotation, it does not get run)
-        | [ SynModuleDecl.DoExpr
-              (_, SynExpr.App
-                    ( _, _, SynExpr.LongIdent _,
-                      SynExpr.Paren(SynExpr.Quote _, _, _, _), _), _) ] -> ()
-        | _ -> failwith "Unexpected AST!"
-      | _ -> failwith "Unexpected AST!"
-  | _ -> failwith "Could not parse the specified AST" }
+let startSession () =
+  { Compiler = SimpleSourceCodeServices()
+    AppDomain = 
+      System.AppDomain.CreateDomain
+        ("Evaluator-"+System.Guid.NewGuid().ToString(), Security.Policy.Evidence(), 
+          AppDomainSetup(ApplicationBase = __SOURCE_DIRECTORY__ + "/../lib")) }  
 
 /// Pass the specified code to FunScript and return JavaScript that we'll
 /// send back to the client (so that they can run it themselves)
-let evalFunScript code { Session = fsiSession; ErrorString = sbErr } = async {
+let evalFunScript code { AppDomain = appDomain; Compiler = scs } = async {
   let allCode =
-    [ yield "FunScript.Compiler.Compiler.Compile(<@"
-      for line in getLines code do yield "  " + line
-      yield "@>)" ]
-    |> String.concat "\n"
-  printfn "Evaluating: %s" allCode
-  do! checkScriptStructure (Config.scriptFile, allCode) fsiSession.InteractiveChecker
+    [ yield "[<ReflectedDefinition>]"
+      yield "module Main"
+      for line in getLines code do yield "  " + line ]
 
-  try
-    match fsiSession.EvalExpression(allCode) with
-    | Some value -> return Choice1Of2(value.ReflectionValue.ToString())
-    | None -> return Choice2Of2(new Exception("Evaluating expression produced no output."))
-  with e ->
-    let errors = sbErr.ToString()
-    return Choice2Of2(new Exception("Evaluation failed: " + errors, e)) }
+  use source = TempFile.Create("fs")
+  use library = TempFile.Create("dll")
+  File.WriteAllLines(source.FileName, allCode)
+  let errors, exitCode = scs.Compile([| "fsc.exe"; "-o"; library.FileName; "-a"; source.FileName |])
+  printfn "Compiling:\n%A\nInto: %s" allCode library.FileName
+  if exitCode <> 0 then
+    return Choice2Of2(new Exception(sprintf "Evaluation failed: %A" errors))
+  else
+    let ts = Katas.Server.Translator(File.ReadAllBytes library.FileName)
+
+    let del = Delegate.CreateDelegate(typeof<CrossAppDomainDelegate>, ts, typeof<Translator>.GetMethod("Run"))
+    appDomain.DoCallBack(del :?> CrossAppDomainDelegate)
+    return Choice1Of2(ts.Result) }
+
 
 // ------------------------------------------------------------------------------------------------
 // Start F# interactive and expose a web part
@@ -91,13 +51,10 @@ let evalFunScript code { Session = fsiSession; ErrorString = sbErr } = async {
 open Suave.Http
 open Suave.Http.Applicatives
 
-let evaluate (fsi:ResourceAgent<FsiSession>) code = 
-  fsi.Process(evalFunScript code) 
- 
-let webPart fsi =
-  path "/run" >>= withRequestParams (fun (_, _, source) ctx -> async { 
+let webPart (scs:ResourceAgent<_>) =
+  path "/run" >>= withRequestParams (fun (_, _, code) ctx -> async { 
     // Transform F# `source` into JavaScript and return it
-    let! jscode = evaluate fsi source
+    let! jscode = scs.Process(evalFunScript code)
     match jscode with
     | Choice1Of2 jscode -> return! ctx |> noCacheSuccess jscode
     | Choice2Of2 e -> 

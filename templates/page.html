@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
-  <title>F# Katas</title>
+  
+  {% block head %}
+  {% endblock %}
 
   <!-- Standard design and scripts -->
   <script src="//code.jquery.com/jquery-2.1.4.js"></script>
-  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/chosen/1.4.2/chosen.jquery.js"></script>
-  <link href="/content/bootstrap.choosen.css" rel="stylesheet">
 
   <!-- Styles and scripts for the F# code editor -->
   <link href="/content/editor.css" rel="stylesheet" />
@@ -25,7 +26,6 @@
 
   <!-- F# Formatting -->
   <script src="/scripts/tips.js"></script>
-  <link href="/content/snippets.css" rel="stylesheet" />
 
   <!-- Custom site styles and scripts -->
   <script src="/scripts/custom.js"></script>
@@ -37,22 +37,52 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-          <h1>F# Kata</h1>
+          <h1><a href="/">F# Katas Playground</a></h1>
         </div>
       </div>
     </div>
   </header>
-  
-  <hr />
-  
-  <div class="container" id="main">
-    <div class="row">
-      <div class="col-md-12">
 
-        [BODY]
+  {% block content %}
+  {% endblock %}
 
+  <footer>
+    <div class="container"><div class="row">
+      <div class="col-md-3">    
+        <h3>About the F# language</h3>
+        <p>This site has been built to let you easily explore the F# language.</p><p>
+          For more information about F#, check out the <a href="http://fsharp.org">F# Software Foundation</a>
+          web site. The <a href="http://fsharp.org/about/learning.html">Learn F# page</a> lists additional
+          resources such as books. You can also <a href="http://foundation.fsharp.org/">join as a member</a>
+          and help us support F#!</p>
       </div>
-    </div>
-  </div>
+      <div class="col-md-4">
+        <h3>About F# Katas Playground</h3>
+        <p>The F# Katas Playground has been built by F# experts from 
+          <a href="http://fsharpworks.com">fsharpWorks</a> and the content has
+          been contributed by the great F# community.</p>
+        <p>Some Katas are adapted from
+          existing content and have an explicit license. All other content is
+          licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution</a>
+          license. The source code for the playground <a href="https://github.com/tpetricek/Katas.Playground">is on GitHub</a>
+          and is licensed under Apache 2.0.
+      </div>
+      <div class="col-md-3">    
+        <h3>Acknowledgements</h3>
+        <p>This site relies on a large number of great open-source projects. Thank you!</p>
+        <ul>
+          <li><a href="http://suave.io">Suave</a> web server</li>
+          <li><a href="http://fsharp.github.io/FAKE/">FAKE</a> for build automation</li>
+          <li><a href="http://tpetricek.github.io/FSharp.Formatting/">F# Formatting</a> Markdown tools</li>
+          <li><a href="https://github.com/BayardRock/FSharpWebIntellisense">F# Web Intellisense</a> from Bayard Rock</li>
+          <li><a href="http://fsharp.github.io/FSharp.Compiler.Service/">F# Compiler Service</a> to run F#</li>
+        </ul>
+        
+      </div>
+      <div class="col-md-2" style="text-align:right;padding-top:30px">
+        <a href="http://fsharpworks.com/"><img src="/content/fworks.png" /></a>
+      </div>
+    </div></div>
+  </footer>
 </body>
 </html>

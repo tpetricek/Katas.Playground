@@ -1,4 +1,29 @@
-﻿/**************************************** Top panel and Spinner stuff ****************************************/
+// Stores the initalized CodeMirror editor objects (we need to refresh
+// them when switching tabs, otherwise they do not load properly)
+var allEditors = [];
+
+// Stores information about the tests as a collection of records:
+// { id:"[ID]", section:"[SECTION]", source:"[SOURCE]" }
+var kataTests = [];
+
+
+// ---------------------------------------------------------------------
+// Switching tabs and other UI functions
+// ---------------------------------------------------------------------
+
+function showTab(id)
+{
+  $(".tabs-wrapper a").removeClass("selected");
+  $("#link_ft_" + id).addClass("selected");
+  $("#link_hd_" + id).addClass("selected");
+  
+  $("#main .tab").removeClass("selected");
+  $("#" + id).addClass("selected");
+  
+  allEditors.forEach(function(ed) { 
+    ed.setValue(ed.getValue()); 
+  });
+}
 
 function startSpinning(el)
 {
@@ -12,7 +37,8 @@ function startSpinning(el)
       el.style.display = "block";
       var offset = counter * -21;
       el.style.backgroundPosition = "0px " + offset + "px";
-      counter++; if (counter >= 19) counter = 0;
+      counter++; 
+      if (counter >= 19) counter = 0;
       setTimeout(spin, 100);
     }
   };
@@ -20,33 +46,80 @@ function startSpinning(el)
   return function () { finished = true; };
 }
 
-/**************************************** Common for editors/visualizers ****************************************/
 
-function setSource(id, source, byHand)
+// ---------------------------------------------------------------------
+// Evaluation of katas
+// ---------------------------------------------------------------------
+
+function updateAlertBox(id, anyFailed)
 {
-  window[id + "_source"] = source;
-  window[id + "_change"].forEach(function (f) { f(byHand); });
+  $("#" + id + "_alert_info").hide();
+  var f = $("#" + id + "_alert_fail").stop();
+  var s = $("#" + id + "_alert_success").stop();
+  if (anyFailed) f.fadeIn(100); else f.hide();
+  if (!anyFailed) s.fadeIn(100); else s.hide();
+  window[id + "_animation"] = setTimeout(function() {
+    f.fadeOut(1000);
+    s.fadeOut(1000);
+  }, 5000);
 }
 
-/**************************************** Setting up the editor ****************************************/
-
-var kataTests = [];
-
-function evalKata(source)
+function formatSource(test, source)
 {
-  kataTests.forEach(function(kata) {
-    var kataSource = source + "\n" + kata.source;
+  var testSource = test.source.match(/[^\r\n]+/g).map(function(s){ return "  " + s; }).join("\n");
+  return source + "\nlet test() =\n" + testSource;
+}
+
+function updateTestResult(test, newClass)
+{
+  var resEl = $("#" + test.id + " .test-result");
+  resEl.removeClass("test-fail");
+  resEl.removeClass("test-success");
+  resEl.removeClass("test-unknown");
+  resEl.addClass("test-" + newClass);
+}
+
+function evalKata(section, id)
+{
+  // Start the spinner & init alert box
+  var stop = startSpinning($("#" + id + "_spinner").get()[0]);
+  if (window[id + "_animation"]) clearTimeout(window[id + "_animation"]);
+  
+  // Get the attempted solution and relevant tests
+  var source = window[id + '_cm_editor'].getValue();  
+  var tests = kataTests.filter(function(test) { 
+    return test.section == section; });
+
+  // Convert test source to JavaScript and evaluate them
+  var remaining = tests.length;
+  var anyFailed = false;
+  tests.forEach(function(test) {
     $.ajax({
-      url: "/run", data: kataSource, contentType: "text/fsharp",
-      type: "POST", dataType: "text"
-    }).done(function (data) {
-      var res = eval("(function(){ " + data + " })()");
-      document.getElementById(kata.id + "_testresult").innerHTML = res;      
+      url: "/run", data: formatSource(test, source), 
+      contentType: "text/fsharp", type: "POST", dataType: "text"
+    }).done(function (data) {    
+      
+      // Evaluate the test & show the test result
+      var res = eval("(function(){ " + data + "; return test(); })()");
+      var newClass = res ? "success" : "fail";      
+      updateTestResult(test, newClass);
+
+      // When we run all tess, display final result
+      anyFailed = anyFailed || !res;      
+      remaining--;      
+      if (remaining == 0) {
+        updateAlertBox(id, anyFailed);        
+        stop();
+      }
     });
   });
 }
 
-function setupEditor(id) {
+// ---------------------------------------------------------------------
+// Setting up the CodeMirror editor
+// ---------------------------------------------------------------------
+
+function setupEditorHelper(id) {
   var source = window[id + "_source"];
   var element = document.getElementById(id + "_editor");
 
@@ -54,7 +127,6 @@ function setupEditor(id) {
   var editor = CodeMirror(element, {
     value: source, mode: 'fsharp', lineNumbers: false
   });
-  editor.focus();
 
   // Helper to send request to our server
   function request(operation, line, col) {
@@ -90,11 +162,15 @@ function setupEditor(id) {
   return editor;
 }
 
-function switchEditor(id)
+function setupEditor(id)
 {
   var edEl = $("#" + id + "_editor");
   edEl.show();
   if (window[id + "_cm_editor"] == null)
-    window[id + "_cm_editor"] = setupEditor(id);
+  {
+    var ed = setupEditorHelper(id);
+    window[id + "_cm_editor"] = ed;
+    allEditors.push(ed);    
+  }
 }
 

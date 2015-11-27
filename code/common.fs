@@ -32,19 +32,29 @@ type ResourceAgent<'T>(name, restartAfter, ctor:unit -> 'T, ?cleanup) =
 /// Split the input string into an array of lines (using \r\n or \n as separator)
 let getLines (s:string) = s.Replace("\r\n", "\n").Split('\n')
 
-let asyncMap f list =
-  let rec loop acc list = async {
-    match list with
-    | [] -> return List.rev acc
-    | x::xs ->
-        let! r = f x
-        return! loop (r::acc) xs }
-  loop [] list
+let (|Trim|) (s:string) = s.Trim().ToLower()
+
+let replace (replacements:seq<string * string>) input = 
+  replacements |> Seq.fold (fun (input:string) (k,v) -> input.Replace(k, v)) input
+
+let (|As|) v x = v, x
 
 open System
 open System.IO
 open Suave.Http
 open Suave.Types
+
+type TempFile(file, delete) =
+  member x.FileName = file
+  interface IDisposable with  
+    member x.Dispose() =
+      () //delete |> Seq.iter File.Delete
+  static member Create() =
+    let fn = Path.GetTempFileName()
+    new TempFile(fn, [fn])
+  static member Create(ext) =
+    let fn = Path.GetTempFileName()
+    new TempFile(fn + "." + ext, [fn; fn + "." + ext])
 
 /// Return success and disable all caches
 let noCacheSuccess res =
@@ -65,3 +75,36 @@ let getRequestParams (ctx:HttpContext) =
 
 let withRequestParams f ctx = async {
   return! f (getRequestParams ctx) ctx }
+
+/// Format MarkdownSpans as plain text dropping basic formatting
+open FSharp.Markdown
+
+let rec asPlainText items : string =
+  items |> List.map (function
+    | Literal text -> text.Replace('\n', ' ').Replace('\r', ' ')
+    | DirectLink(items, _) 
+    | Emphasis(items)
+    | Strong(items) -> (asPlainText items).Replace('\n', ' ').Replace('\r', ' ')
+    | _ -> "")
+  |> String.concat " "
+
+module List = 
+  let partitionBy f items = 
+    let rec loop group acc items =
+      match items with
+      | [] -> (List.rev group)::acc |> List.rev
+      | x::xs when f x -> loop [] ((List.rev group)::acc) xs
+      | x::xs -> loop (x::group) acc xs
+    loop [] [] items
+  
+  let tryRemoveFirst f items = 
+    let rec loop acc items = 
+      match items with 
+      | x::xs when f x -> Some x, List.rev acc @ xs
+      | x::xs -> loop (x::acc) xs
+      | [] -> None, List.rev acc
+    loop [] items
+
+module Seq = 
+  let tryLast input =
+    input |> Seq.fold (fun _ v -> Some v) None        
