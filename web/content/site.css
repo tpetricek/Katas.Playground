@@ -163,23 +163,23 @@ body {
 .alert {
   display:none;
   padding:9px 15px 8px 15px;
-  color:#d0d0d0;
+  color:white;
 }
 .alert strong {
   margin-right:10px;
 }
 .alert-info {
   display:block;
-  background:#564E4E;
-  border-color:#564E4E;
+  background:#776868;
+  border-color:#776868;
 }
 .alert-danger {
-  background:#632117;
-  border-color:#632117;
+  background:#CC4F37;
+  border-color:#CC4F37;
 }
 .alert-success {
-  background:#1E6023;
-  border-color:#1E6023;
+  background:#62BA6F;
+  border-color:#62BA6F;
 }
 .alert-wrapper {
   margin-right:20px;
@@ -187,8 +187,8 @@ body {
   height:40px;
 }
 .btn-success {
-  background:#CC4F37;
-  border-color:#CC4F37;
+  background:#564E4E;
+  border-color:#564E4E;
   font-size:14pt;
   width:140px;
   height:40px;
@@ -198,8 +198,8 @@ body {
   left:20px;
 }
 .btn-success:hover, .btn-success:active, .btn-success:focus {
-  background:#8E3626 !important;
-  border-color:#8E3626 !important;
+  background:#776868 !important;
+  border-color:#776868 !important;
 }
 .spinner {
   display:none;
